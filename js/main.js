@@ -52,11 +52,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 .on("drag", dragged)
                 .on("end", dragended))
             .on("mouseover", function (event, d) {
-                tooltip.style("opacity", 1)
+                tooltip
+                    .datum(d)  // Store the node data
+                    .style("opacity", 1)
                     .attr("transform", `translate(${d.x},${d.y})`)
                     .select("text")
-                    .text(d.name)
-                    //.attr("fill", d.colour);  // Set the text color to match the node color
+                    .text(d.name);
+                //.attr("fill", d.colour);  // Set the text color to match the node color
             })
             .on("mouseout", function () {
                 tooltip.style("opacity", 0);
@@ -96,11 +98,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 .attr("cy", d => d.y);
 
             tooltip.style("opacity", function () {
-                if (parseFloat(this.style.opacity) > 0) {
-                    const node = d3.select(this).datum();
-                    d3.select(this).attr("transform", `translate(${node.x},${node.y})`);
+                const opacity = parseFloat(this.style.opacity);
+                if (opacity > 0) {
+                    const d = d3.select(this).datum();  // Get the stored data
+                    if (d) {  // Check if data exists
+                        d3.select(this).attr("transform", `translate(${d.x},${d.y})`);
+                    }
                 }
-                return this.style.opacity;
+                return opacity;
             });
         }
 
