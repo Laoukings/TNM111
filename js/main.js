@@ -175,22 +175,6 @@ document.addEventListener('DOMContentLoaded', function () {
             drawGraph1(svg1, currentData);
             drawGraph2(svg2, currentData);
         });
-
-        // Control Panel - Node Radius Slider
-        document.getElementById("node-radius-slider").addEventListener("input", function () {
-            const newRadius = this.value;
-            radiusScale.range([3, newRadius]);
-            svg1.selectAll("circle").attr("r", d => radiusScale(d.value));
-            svg2.selectAll("circle").attr("r", d => radiusScale(d.value));
-        });
-
-        // Control Panel - Link Width Slider
-        document.getElementById("link-width-slider").addEventListener("input", function () {
-            const newWidth = this.value;
-            linkWidthScale.range([1, newWidth]);
-            svg1.selectAll("line").attr("stroke-width", d => linkWidthScale(d.value));
-        });
-
     }).catch(function (error) {
         console.error("Error loading the data:", error);
     });
