@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function () {
         d3.json("Datan/starwars-episode-7-interactions-allCharacters.json"),
         d3.json("Datan/starwars-full-interactions-allCharacters.json")
     ]).then(function (datasets) {
-        const data = datasets[7];
+        const data = datasets[0];
         // Create your visualization here
         // Create SVG container
         const svg = d3.select("#graph")
@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
             .data(data.links)
             .enter()
             .append("line")
-            .attr("stroke", "#999")
+            .attr("stroke", d => data.nodes[d.source].colour)
             .attr("stroke-width", d => linkWidthScale(d.value))
             .attr("stroke-opacity", 0.6);
 
@@ -50,16 +50,27 @@ document.addEventListener('DOMContentLoaded', function () {
             .call(d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
-                .on("end", dragended));
+                .on("end", dragended))
+            .on("mouseover", function (event, d) {
+                tooltip.style("opacity", 1)
+                    .attr("transform", `translate(${d.x},${d.y})`)
+                    .select("text")
+                    .text(d.name)
+                    //.attr("fill", d.colour);  // Set the text color to match the node color
+            })
+            .on("mouseout", function () {
+                tooltip.style("opacity", 0);
+            });
 
         // Add node labels (text)
-        const labels = svg.append("g")
-            .selectAll("text")
-            .data(data.nodes)
-            .enter()
-            .append("text")
-            .text(d => d.name)
+        const tooltip = svg.append("g")
+            .attr("class", "tooltip")
+            .style("pointer-events", "none")  // Prevent tooltip from interfering with mouse events
+            .style("opacity", 0);  // Hide by default
+
+        tooltip.append("text")
             .attr("font-size", "10px")
+            .attr("fill", "black")
             .attr("dx", 10)
             .attr("dy", 5);
 
@@ -84,9 +95,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y);
 
-            labels
-                .attr("x", d => d.x)
-                .attr("y", d => d.y);
+            tooltip.style("opacity", function () {
+                if (parseFloat(this.style.opacity) > 0) {
+                    const node = d3.select(this).datum();
+                    d3.select(this).attr("transform", `translate(${node.x},${node.y})`);
+                }
+                return this.style.opacity;
+            });
         }
 
         // Drag event handlers
