@@ -13,3 +13,12 @@
 #graph2 svg {
     display: block;
 }
+.tooltip {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
+}

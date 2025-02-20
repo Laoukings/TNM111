@@ -39,6 +39,12 @@ document.addEventListener('DOMContentLoaded', function () {
             .domain([0, d3.max(currentData.links, d => d.value)])
             .range([1, 5]);
 
+        // Tooltip div
+        const tooltip = d3.select("body")
+            .append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
         // Draw the original graph (graph1)
         const drawGraph1 = (svg, data) => {
             const links = svg.append("g")
@@ -60,17 +66,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 .call(d3.drag()
                     .on("start", dragstarted)
                     .on("drag", dragged)
-                    .on("end", dragended));
-
-            const labels = svg.append("g")
-                .selectAll("text")
-                .data(data.nodes)
-                .enter()
-                .append("text")
-                .text(d => d.name)
-                .attr("font-size", "10px")
-                .attr("dx", 10)
-                .attr("dy", 5);
+                    .on("end", dragended))
+                .on("mouseover", function (event, d) {
+                    // Show tooltip on hover
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", 0.9);
+                    tooltip.html(`Name: ${d.name}<br>Value: ${d.value}`)
+                        .style("left", `${event.pageX + 5}px`)
+                        .style("top", `${event.pageY - 28}px`);
+                })
+                .on("mouseout", function () {
+                    // Hide tooltip on mouseout
+                    tooltip.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                });
 
             const simulation = d3.forceSimulation(data.nodes)
                 .force("link", d3.forceLink(data.links).id(d => d.index))
@@ -86,10 +97,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     nodes
                         .attr("cx", d => d.x)
                         .attr("cy", d => d.y);
-
-                    labels
-                        .attr("x", d => d.x)
-                        .attr("y", d => d.y);
                 });
 
             function dragstarted(event, d) {
@@ -139,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .on("click", function (event, d) {
                     // Highlight clicked node in both graphs
                     highlightNode(d);
-                });;
+                });
 
             const labels = svg.append("g")
                 .selectAll("text")
