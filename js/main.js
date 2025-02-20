@@ -1,4 +1,4 @@
-const width = 1200, height = 900;
+const width = 700, height = 400;
 
 document.addEventListener('DOMContentLoaded', function () {
     Promise.all([
@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function () {
         d3.json("Datan/starwars-episode-7-interactions-allCharacters.json"),
         d3.json("Datan/starwars-full-interactions-allCharacters.json")
     ]).then(function (datasets) {
-        let currentData = datasets[7]; // Default to full data
+        let currentData = datasets[0]; // Default to Episode 1
 
         // Create SVG containers for both graphs
         const svg1 = d3.select("#graph")
@@ -21,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const svg2 = d3.select("#graph2")
             .append("svg")
-            .attr("width", 300) // Smaller width for sorted nodes
-            .attr("height", height);
+            .attr("width", 1500)
+            .attr("height", 400); // Increased height to accommodate multiple rows
 
         // Define scales
         const radiusScale = d3.scaleSqrt()
@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const simulation = d3.forceSimulation(data.nodes)
                 .force("link", d3.forceLink(data.links).id(d => d.index))
-                .force("charge", d3.forceManyBody().strength(-50))
+                .force("charge", d3.forceManyBody().strength(-100))
                 .force("center", d3.forceCenter(width / 2, height / 2))
                 .on("tick", () => {
                     links
@@ -108,6 +108,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const drawGraph2 = (svg, data) => {
             // Sort nodes by value (or any other property)
             const sortedNodes = data.nodes.sort((a, b) => b.value - a.value);
+            
+            // Define grid parameters
+            const nodesPerRow = 10;
+            const horizontalSpacing = 140;
+            const verticalSpacing = 70;
 
             const nodes = svg.append("g")
                 .selectAll("circle")
@@ -116,8 +121,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 .append("circle")
                 .attr("r", d => radiusScale(d.value))
                 .attr("fill", d => d.colour)
-                .attr("cx", 50) // Fixed x position
-                .attr("cy", (d, i) => 50 + i * 30) // Vertical spacing
+                .attr("cx", (d, i) => 50 + (i % nodesPerRow) * horizontalSpacing) // Position in row
+                .attr("cy", (d, i) => 50 + Math.floor(i / nodesPerRow) * verticalSpacing) // Position in column
                 .on("click", function (event, d) {
                     // Highlight clicked node in both graphs
                     highlightNode(d);
@@ -130,8 +135,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 .append("text")
                 .text(d => d.name)
                 .attr("font-size", "10px")
-                .attr("x", 70) // Fixed x position
-                .attr("y", (d, i) => 55 + i * 30); // Align with nodes
+                .attr("x", (d, i) => 50 + (i % nodesPerRow) * horizontalSpacing) // Align with circles
+                .attr("y", (d, i) => 80 + Math.floor(i / nodesPerRow) * verticalSpacing) // Position below circles
+                .attr("text-anchor", "middle"); // Center text under circles
         };
 
         // Draw both graphs
