@@ -22,8 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const svg2 = d3.select("#graph2")
             .append("svg")
-            .attr("width", 750)
-            .attr("height", 400);
+            .attr("width", 750);
 
         const svg3 = d3.select("#graph3")
             .append("svg")
@@ -129,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             // Calculate total rows needed
             const totalRows = Math.ceil(sortedNodes.length / nodesPerRow);
-            const totalHeight = (totalRows * verticalSpacing) + 100; // Add padding
+            const totalHeight = (totalRows * verticalSpacing) + 20; // Add padding
             
             // Set the SVG height to accommodate all nodes
             svg.attr("height", totalHeight);
