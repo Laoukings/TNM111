@@ -11,6 +11,26 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div id="control-panel">
+        <h3>Control Panel</h3>
+        <label for="episode-select">Select Episode:</label>
+        <select id="episode-select">
+            <option value="0">Episode 1</option>
+            <option value="1">Episode 2</option>
+            <option value="2">Episode 3</option>
+            <option value="3">Episode 4</option>
+            <option value="4">Episode 5</option>
+            <option value="5">Episode 6</option>
+            <option value="6">Episode 7</option>
+            <option value="7">Full Data</option>
+        </select>
+
+        <label for="node-radius-slider">Node Radius:</label>
+        <input type="range" id="node-radius-slider" min="3" max="20" value="15">
+
+        <label for="link-width-slider">Link Width:</label>
+        <input type="range" id="link-width-slider" min="1" max="10" value="5">
+    </div>
     <div id="graph"></div>
 
     <!-- Link to external JavaScript file -->
