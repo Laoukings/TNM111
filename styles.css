@@ -1,9 +1,15 @@
-.tooltip {
-    position: absolute;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 12px;
-    pointer-events: none; /* Prevent tooltip from interfering with mouse events */
+#top-graphs {
+    margin-bottom: 20px;
+}
+
+#graph, #graph3 {
+    width: 48%; /* Leave some space between graphs */
+}
+
+#graph2-container {
+    border: 5px solid black;
+}
+
+#graph2 svg {
+    display: block;
 }

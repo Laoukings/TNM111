@@ -1,4 +1,5 @@
-const width = 700, height = 400;
+const width = 500;
+const height = 400;
 
 document.addEventListener('DOMContentLoaded', function () {
     Promise.all([
@@ -13,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ]).then(function (datasets) {
         let currentData = datasets[0]; // Default to Episode 1
 
-        // Create SVG containers for both graphs
+        // Create SVG containers for all graphs
         const svg1 = d3.select("#graph")
             .append("svg")
             .attr("width", width)
@@ -21,8 +22,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const svg2 = d3.select("#graph2")
             .append("svg")
-            .attr("width", 1500)
-            .attr("height", 400); // Increased height to accommodate multiple rows
+            .attr("width", 750)
+            .attr("height", 400);
+
+        const svg3 = d3.select("#graph3")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height);
 
         // Define scales
         const radiusScale = d3.scaleSqrt()
@@ -32,12 +38,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const linkWidthScale = d3.scaleLinear()
             .domain([0, d3.max(currentData.links, d => d.value)])
             .range([1, 5]);
-
-        // Tooltip div
-        const tooltip = d3.select("body")
-            .append("div")
-            .attr("class", "tooltip")
-            .style("opacity", 0);
 
         // Draw the original graph (graph1)
         const drawGraph1 = (svg, data) => {
@@ -60,22 +60,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 .call(d3.drag()
                     .on("start", dragstarted)
                     .on("drag", dragged)
-                    .on("end", dragended))
-                .on("mouseover", function (event, d) {
-                    // Show tooltip on hover
-                    tooltip.transition()
-                        .duration(200)
-                        .style("opacity", 0.9);
-                    tooltip.html(`Name: ${d.name}<br>Value: ${d.value}`)
-                        .style("left", `${event.pageX + 5}px`)
-                        .style("top", `${event.pageY - 28}px`);
-                })
-                .on("mouseout", function () {
-                    // Hide tooltip on mouseout
-                    tooltip.transition()
-                        .duration(500)
-                        .style("opacity", 0);
-                });
+                    .on("end", dragended));
+
+            const labels = svg.append("g")
+                .selectAll("text")
+                .data(data.nodes)
+                .enter()
+                .append("text")
+                .text(d => d.name)
+                .attr("font-size", "10px")
+                .attr("dx", 10)
+                .attr("dy", 5);
 
             const simulation = d3.forceSimulation(data.nodes)
                 .force("link", d3.forceLink(data.links).id(d => d.index))
@@ -91,6 +86,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     nodes
                         .attr("cx", d => d.x)
                         .attr("cy", d => d.y);
+
+                    labels
+                        .attr("x", d => d.x)
+                        .attr("y", d => d.y);
                 });
 
             function dragstarted(event, d) {
@@ -117,10 +116,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const sortedNodes = data.nodes.sort((a, b) => b.value - a.value);
             
             // Define grid parameters
-            const nodesPerRow = 10;
+            const nodesPerRow = 5;
             const horizontalSpacing = 140;
             const verticalSpacing = 70;
-
+            
+            // Calculate total rows needed
+            const totalRows = Math.ceil(sortedNodes.length / nodesPerRow);
+            const totalHeight = (totalRows * verticalSpacing) + 100; // Add padding
+            
+            // Set the SVG height to accommodate all nodes
+            svg.attr("height", totalHeight);
+            
             const nodes = svg.append("g")
                 .selectAll("circle")
                 .data(sortedNodes)
@@ -128,12 +134,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 .append("circle")
                 .attr("r", d => radiusScale(d.value))
                 .attr("fill", d => d.colour)
-                .attr("cx", (d, i) => 50 + (i % nodesPerRow) * horizontalSpacing) // Position in row
-                .attr("cy", (d, i) => 50 + Math.floor(i / nodesPerRow) * verticalSpacing) // Position in column
+                .attr("cx", (d, i) => 50 + (i % nodesPerRow) * horizontalSpacing)
+                .attr("cy", (d, i) => 50 + Math.floor(i / nodesPerRow) * verticalSpacing)
                 .on("click", function (event, d) {
                     // Highlight clicked node in both graphs
                     highlightNode(d);
-                });
+                });;
 
             const labels = svg.append("g")
                 .selectAll("text")
@@ -142,14 +148,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 .append("text")
                 .text(d => d.name)
                 .attr("font-size", "10px")
-                .attr("x", (d, i) => 50 + (i % nodesPerRow) * horizontalSpacing) // Align with circles
-                .attr("y", (d, i) => 80 + Math.floor(i / nodesPerRow) * verticalSpacing) // Position below circles
-                .attr("text-anchor", "middle"); // Center text under circles
+                .attr("x", (d, i) => 50 + (i % nodesPerRow) * horizontalSpacing)
+                .attr("y", (d, i) => 80 + Math.floor(i / nodesPerRow) * verticalSpacing)
+                .attr("text-anchor", "middle");
         };
 
-        // Draw both graphs
+        // Draw all graphs
         drawGraph1(svg1, currentData);
         drawGraph2(svg2, currentData);
+        drawGraph1(svg3, datasets[7]); // Full interactions graph
 
         // Highlight nodes and links in graph1
         const highlightNode = (node) => {
@@ -182,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
             radiusScale.domain([0, d3.max(currentData.nodes, d => d.value)]);
             linkWidthScale.domain([0, d3.max(currentData.links, d => d.value)]);
 
-            // Redraw both graphs
+            // Redraw graphs
             svg1.selectAll("*").remove();
             svg2.selectAll("*").remove();
             drawGraph1(svg1, currentData);
