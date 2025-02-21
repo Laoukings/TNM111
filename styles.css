@@ -1,14 +1,48 @@
-#graph, #graph3 {
-    width: 48%; /* Leave some space between graphs */
+#container {
+    display: flex;
+    gap: 200px;
+}
+
+#left-column {
+    width: 25%;
+}
+
+#right-column {
+    width: 25%;
+}
+
+#graph, #graph2-container {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+#graph3, #graph4-container {
+    width: 100%;
+    margin-bottom: 20px;
 }
 
 #graph2-container {
     border: 5px solid black;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 300px;
+}
+
+#graph4-container {
+    border: 5px solid black;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: 300px;
 }
 
 #graph2 svg {
     display: block;
 }
+
+#graph4 svg {
+    display: block;
+}
+
 .tooltip {
     position: absolute;
     background: rgba(0, 0, 0, 0.8);

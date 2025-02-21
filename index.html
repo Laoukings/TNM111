@@ -10,27 +10,42 @@
     <!-- Link to external CSS file -->
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <div id="control-panel">
-        <h3>Control Panel</h3>
-        <label for="episode-select">Select Episode:</label>
-        <select id="episode-select">
-            <option value="0">Episode 1</option>
-            <option value="1">Episode 2</option>
-            <option value="2">Episode 3</option>
-            <option value="3">Episode 4</option>
-            <option value="4">Episode 5</option>
-            <option value="5">Episode 6</option>
-            <option value="6">Episode 7</option>
-            <option value="7">Full Data</option>
-        </select>
-    </div>
-    <div id="top-graphs" style="display: flex; justify-content: space-between;">
-        <div id="graph"></div>
-        <div id="graph3"></div>
-    </div>
-    <div id="graph2-container" style="height: 250px; width: 700px; overflow-y: auto; overflow-x: hidden;">
-        <div id="graph2"></div>
+<body>  
+    <div id="container" style="display: flex;">
+        <div id="left-column">
+            <label for="episode-select">Select Episode (Graph 1 & 2):</label>
+            <select id="episode-select">
+                <option value="0">Episode 1</option>
+                <option value="1">Episode 2</option>
+                <option value="2">Episode 3</option>
+                <option value="3">Episode 4</option>
+                <option value="4">Episode 5</option>
+                <option value="5">Episode 6</option>
+                <option value="6">Episode 7</option>
+                <option value="7">Full Data</option>
+            </select>
+            <div id="graph"></div>
+            <div id="graph2-container">
+                <div id="graph2"></div>
+            </div>
+        </div>
+        <div id="right-column">
+            <label for="episode-select-3">Select Episode (Graph 3 & 4):</label>
+            <select id="episode-select-3">
+                <option value="0">Episode 1</option>
+                <option value="1">Episode 2</option>
+                <option value="2">Episode 3</option>
+                <option value="3">Episode 4</option>
+                <option value="4">Episode 5</option>
+                <option value="5">Episode 6</option>
+                <option value="6">Episode 7</option>
+                <option value="7">Full Data</option>
+            </select>
+            <div id="graph3"></div>
+            <div id="graph4-container">
+                <div id="graph4"></div>
+            </div>
+        </div>
     </div>
     <script src="js/main.js"></script>
 </body>
