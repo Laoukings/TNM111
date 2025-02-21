@@ -1,4 +1,4 @@
-const width = 500;
+const width = 425;
 const height = 400;
 let selectedNode = null;  // Add this line
 
@@ -89,8 +89,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const simulation = d3.forceSimulation(data.nodes)
                 .force("link", d3.forceLink(data.links).id(d => d.index))
-                .force("charge", d3.forceManyBody().strength(-100))
+                .force("charge", d3.forceManyBody().strength(-50))
                 .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collide", d3.forceCollide().radius(d => radiusScale(d.value) + 2))
+                .force("bounds", () => {
+                    for (let node of data.nodes) {
+                        // Get the radius of the current node
+                        const r = radiusScale(node.value);
+                        
+                        // Bound x coordinate
+                        node.x = Math.max(r, Math.min(width - r, node.x));
+                        
+                        // Bound y coordinate
+                        node.y = Math.max(r, Math.min(height - r, node.y));
+                    }
+                })
                 .on("tick", () => {
                     links
                         .attr("x1", d => d.source.x)
@@ -151,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Toggle highlight when clicking the same node
                     if (selectedNode === d) {
                         selectedNode = null;
-                        resetHighlight();
+                        resetHighlightGraphs12();
                     } else {
                         selectedNode = d;
                         highlightNode(d);
@@ -221,10 +234,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Toggle highlight when clicking the same edge
                     if (selectedNode === d) {
                         selectedNode = null;
-                        resetHighlight();
+                        resetHighlightGraphs34();
                     } else {
                         selectedNode = d;
-                        highlightNode(d);
+                        highlightEdge(d);
                     }
                 });
 
@@ -268,12 +281,45 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         // Reset all highlights
-        const resetHighlight = () => {
+        const resetHighlightGraphs12 = () => {
+            // Reset graph1 highlights
             svg1.selectAll("line")
                 .attr("stroke", "#999")
                 .attr("stroke-width", d => linkWidthScale(d.value));
 
             svg1.selectAll("circle")
+                .attr("stroke", null)
+                .attr("stroke-width", 0);
+
+            // Reset graph2 highlights
+            svg2.selectAll("line")
+                .attr("stroke", "#999")
+                .attr("stroke-width", d => linkWidthScale(d.value))
+                .attr("stroke-opacity", 0.6);
+
+            svg2.selectAll("circle")
+                .attr("stroke", null)
+                .attr("stroke-width", 0);
+        };
+
+        const resetHighlightGraphs34 = () => {
+            // Reset graph3 highlights
+            svg3.selectAll("line")
+                .attr("stroke", "#999")
+                .attr("stroke-width", d => linkWidthScale(d.value))
+                .attr("stroke-opacity", 0.6);
+
+            svg3.selectAll("circle")
+                .attr("stroke", null)
+                .attr("stroke-width", 0);
+
+            // Reset graph4 highlights
+            svg4.selectAll("line")
+                .attr("stroke", "#999")
+                .attr("stroke-width", d => linkWidthScale(d.value))
+                .attr("stroke-opacity", 0.6);
+
+            svg4.selectAll("circle")
                 .attr("stroke", null)
                 .attr("stroke-width", 0);
         };
@@ -311,6 +357,58 @@ document.addEventListener('DOMContentLoaded', function () {
             drawGraph1(svg3, selectedData); 
             drawGraph2Edges(svg4, selectedData);
         });
+
+        const highlightEdge = (edge) => {
+            // Highlight the selected edge group in graph4
+            svg4.selectAll("line")
+                .attr("stroke", d => d === edge ? "orange" : "#999")
+                .attr("stroke-width", d => d === edge ? 5 : linkWidthScale(d.value))
+                .attr("stroke-opacity", d => d === edge ? 1 : 0.6);
+
+            // Highlight the connected nodes (circles) in graph4
+            svg4.selectAll("circle")
+                .attr("stroke", d => {
+                    const isSourceOrTarget = 
+                        (edge.source === d || edge.target === d) ||
+                        (edge.source.name === d.name || edge.target.name === d.name);
+                    return isSourceOrTarget ? "orange" : null;
+                })
+                .attr("stroke-width", d => {
+                    const isSourceOrTarget = 
+                        (edge.source === d || edge.target === d) ||
+                        (edge.source.name === d.name || edge.target.name === d.name);
+                    return isSourceOrTarget ? 3 : 0;
+                });
+
+            // Highlight the corresponding edge in graph3
+            svg3.selectAll("line")
+                .attr("stroke", d => 
+                    (d.source.name === edge.source.name && d.target.name === edge.target.name) ||
+                    (d.source.name === edge.target.name && d.target.name === edge.source.name)
+                        ? "orange" 
+                        : "#999")
+                .attr("stroke-width", d => 
+                    (d.source.name === edge.source.name && d.target.name === edge.target.name) ||
+                    (d.source.name === edge.target.name && d.target.name === edge.source.name)
+                        ? 5 
+                        : linkWidthScale(d.value))
+                .attr("stroke-opacity", d => 
+                    (d.source.name === edge.source.name && d.target.name === edge.target.name) ||
+                    (d.source.name === edge.target.name && d.target.name === edge.source.name)
+                        ? 1 
+                        : 0.6);
+
+            // Highlight the connected nodes in graph3
+            svg3.selectAll("circle")
+                .attr("stroke", d => 
+                    d.name === edge.source.name || d.name === edge.target.name 
+                        ? "orange" 
+                        : null)
+                .attr("stroke-width", d => 
+                    d.name === edge.source.name || d.name === edge.target.name 
+                        ? 3 
+                        : 0);
+        };
     }).catch(function (error) {
         console.error("Error loading the data:", error);
     });

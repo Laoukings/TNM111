@@ -4,11 +4,19 @@
 }
 
 #left-column {
-    width: 25%;
+    width: 425px;
 }
 
 #right-column {
-    width: 25%;
+    width: 425px;
+}
+
+#graph{
+    border: 5px solid black;
+}
+
+#graph3{
+    border: 5px solid black;
 }
 
 #graph, #graph2-container {
