@@ -333,7 +333,13 @@ document.addEventListener('DOMContentLoaded', function () {
             radiusScale.domain([0, d3.max(currentData.nodes, d => d.value)]);
             linkWidthScale.domain([0, d3.max(currentData.links, d => d.value)]);
 
-            // Redraw graphs 1 & 2 only
+            // Update node slider max value
+            const maxNodeValue = d3.max(currentData.nodes, d => d.value);
+            nodeSlider.max = maxNodeValue;
+            nodeSlider.value = 0;
+            nodeDisplay.textContent = "0";
+
+            // Redraw graphs 1 & 2
             svg1.selectAll("*").remove();
             svg2.selectAll("*").remove();
             drawGraph1(svg1, currentData);
@@ -345,16 +351,20 @@ document.addEventListener('DOMContentLoaded', function () {
             const episodeIndex = this.value;
             const selectedData = datasets[episodeIndex];
 
-            // Update scales for the new data
+            // Update scales
             radiusScale.domain([0, d3.max(selectedData.nodes, d => d.value)]);
             linkWidthScale.domain([0, d3.max(selectedData.links, d => d.value)]);
 
-            // Clear existing graphs
+            // Update edge slider max value
+            const maxEdgeValue = d3.max(selectedData.links, d => d.value);
+            edgeSlider.max = maxEdgeValue;
+            edgeSlider.value = 0;
+            edgeDisplay.textContent = "0";
+
+            // Clear and redraw graphs
             svg3.selectAll("*").remove();
             svg4.selectAll("*").remove();
-
-            // Draw new graphs
-            drawGraph1(svg3, selectedData); 
+            drawGraph1(svg3, selectedData);
             drawGraph2Edges(svg4, selectedData);
         });
 
@@ -409,6 +419,119 @@ document.addEventListener('DOMContentLoaded', function () {
                         ? 3 
                         : 0);
         };
+
+        // Filter functions
+        const filterNodesByValue = (threshold) => {
+            // Filter nodes and related links
+            const filteredNodes = currentData.nodes.filter(node => node.value >= threshold);
+            const filteredNodeNames = new Set(filteredNodes.map(node => node.name));
+            
+            const filteredLinks = currentData.links.filter(link => {
+                const sourceNode = typeof link.source === 'object' ? link.source : currentData.nodes[link.source];
+                const targetNode = typeof link.target === 'object' ? link.target : currentData.nodes[link.target];
+                return filteredNodeNames.has(sourceNode.name) && filteredNodeNames.has(targetNode.name);
+            });
+
+            return {
+                nodes: filteredNodes,
+                links: filteredLinks
+            };
+        };
+
+        const filterEdgesByValue = (threshold) => {
+            // Filter links and related nodes
+            const filteredLinks = currentData.links.filter(link => link.value >= threshold);
+            
+            const usedNodes = new Set();
+            filteredLinks.forEach(link => {
+                const sourceNode = typeof link.source === 'object' ? link.source : currentData.nodes[link.source];
+                const targetNode = typeof link.target === 'object' ? link.target : currentData.nodes[link.target];
+                usedNodes.add(sourceNode.name);
+                usedNodes.add(targetNode.name);
+            });
+
+            const filteredNodes = currentData.nodes.filter(node => usedNodes.has(node.name));
+
+            return {
+                nodes: filteredNodes,
+                links: filteredLinks
+            };
+        };
+
+        // Event listeners for sliders
+        const nodeSlider = document.getElementById('node-value-slider');
+        const nodeDisplay = document.getElementById('node-value-display');
+        const edgeSlider = document.getElementById('edge-value-slider');
+        const edgeDisplay = document.getElementById('edge-value-display');
+
+        // Update the episode-select event listener
+        document.getElementById("episode-select").addEventListener("change", function () {
+            const episodeIndex = this.value;
+            currentData = datasets[episodeIndex];
+
+            // Update scales
+            radiusScale.domain([0, d3.max(currentData.nodes, d => d.value)]);
+            linkWidthScale.domain([0, d3.max(currentData.links, d => d.value)]);
+
+            // Update node slider max value
+            const maxNodeValue = d3.max(currentData.nodes, d => d.value);
+            nodeSlider.max = maxNodeValue;
+            nodeSlider.value = 0;
+            nodeDisplay.textContent = "0";
+
+            // Redraw graphs 1 & 2
+            svg1.selectAll("*").remove();
+            svg2.selectAll("*").remove();
+            drawGraph1(svg1, currentData);
+            drawGraph2(svg2, currentData);
+        });
+
+        // Update the episode-select-3 event listener
+        document.getElementById("episode-select-3").addEventListener("change", function () {
+            const episodeIndex = this.value;
+            const selectedData = datasets[episodeIndex];
+
+            // Update scales
+            radiusScale.domain([0, d3.max(selectedData.nodes, d => d.value)]);
+            linkWidthScale.domain([0, d3.max(selectedData.links, d => d.value)]);
+
+            // Update edge slider max value
+            const maxEdgeValue = d3.max(selectedData.links, d => d.value);
+            edgeSlider.max = maxEdgeValue;
+            edgeSlider.value = 0;
+            edgeDisplay.textContent = "0";
+
+            // Clear and redraw graphs
+            svg3.selectAll("*").remove();
+            svg4.selectAll("*").remove();
+            drawGraph1(svg3, selectedData);
+            drawGraph2Edges(svg4, selectedData);
+        });
+
+        // Add slider event listeners
+        nodeSlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            nodeDisplay.textContent = value;
+            const filteredData = filterNodesByValue(value);
+            
+            // Redraw graphs 1 & 2
+            svg1.selectAll("*").remove();
+            svg2.selectAll("*").remove();
+            drawGraph1(svg1, filteredData);
+            drawGraph2(svg2, filteredData);
+        });
+
+        edgeSlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            edgeDisplay.textContent = value;
+            const filteredData = filterEdgesByValue(value);
+            
+            // Redraw graphs 3 & 4
+            svg3.selectAll("*").remove();
+            svg4.selectAll("*").remove();
+            drawGraph1(svg3, filteredData);
+            drawGraph2Edges(svg4, filteredData);
+        });
     }).catch(function (error) {
         console.error("Error loading the data:", error);
     });

@@ -60,3 +60,21 @@
     font-size: 12px;
     pointer-events: none; /* Prevent tooltip from interfering with mouse events */
 }
+
+.filter-controls {
+    margin: 20px 0;
+}
+
+.filter-controls div {
+    margin: 10px 0;
+}
+
+.filter-controls label {
+    display: inline-block;
+    width: 200px;
+}
+
+.filter-controls input[type="range"] {
+    width: 200px;
+    margin: 0 10px;
+}
