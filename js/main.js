@@ -1,6 +1,7 @@
 const width = 425;
 const height = 400;
 let selectedNode = null;  // Add this line
+let selectedDataset = null;  // Track dataset for graphs 3 & 4
 
 document.addEventListener('DOMContentLoaded', function () {
     Promise.all([
@@ -344,19 +345,32 @@ document.addEventListener('DOMContentLoaded', function () {
             svg2.selectAll("*").remove();
             drawGraph1(svg1, currentData);
             drawGraph2(svg2, currentData);
+
+            if (document.getElementById('common-nodes-only').checked) {
+                const filteredData = filterCommonNodes(currentData, selectedDataset || datasets[0]);
+                svg1.selectAll("*").remove();
+                svg2.selectAll("*").remove();
+                svg3.selectAll("*").remove();
+                svg4.selectAll("*").remove();
+                
+                drawGraph1(svg1, filteredData.data1);
+                drawGraph2(svg2, filteredData.data1);
+                drawGraph1(svg3, filteredData.data2);
+                drawGraph2Edges(svg4, filteredData.data2);
+            }
         });
 
         // Control Panel - Episode Selector for Graphs 3 & 4
         document.getElementById("episode-select-3").addEventListener("change", function () {
             const episodeIndex = this.value;
-            const selectedData = datasets[episodeIndex];
+            selectedDataset = datasets[episodeIndex];  // Store the selected dataset
 
             // Update scales
-            radiusScale.domain([0, d3.max(selectedData.nodes, d => d.value)]);
-            linkWidthScale.domain([0, d3.max(selectedData.links, d => d.value)]);
+            radiusScale.domain([0, d3.max(selectedDataset.nodes, d => d.value)]);
+            linkWidthScale.domain([0, d3.max(selectedDataset.links, d => d.value)]);
 
             // Update edge slider max value
-            const maxEdgeValue = d3.max(selectedData.links, d => d.value);
+            const maxEdgeValue = d3.max(selectedDataset.links, d => d.value);
             edgeSlider.max = maxEdgeValue;
             edgeSlider.value = 0;
             edgeDisplay.textContent = "0";
@@ -364,8 +378,21 @@ document.addEventListener('DOMContentLoaded', function () {
             // Clear and redraw graphs
             svg3.selectAll("*").remove();
             svg4.selectAll("*").remove();
-            drawGraph1(svg3, selectedData);
-            drawGraph2Edges(svg4, selectedData);
+            drawGraph1(svg3, selectedDataset);
+            drawGraph2Edges(svg4, selectedDataset);
+
+            if (document.getElementById('common-nodes-only').checked) {
+                const filteredData = filterCommonNodes(currentData, selectedDataset || datasets[0]);
+                svg1.selectAll("*").remove();
+                svg2.selectAll("*").remove();
+                svg3.selectAll("*").remove();
+                svg4.selectAll("*").remove();
+                
+                drawGraph1(svg1, filteredData.data1);
+                drawGraph2(svg2, filteredData.data1);
+                drawGraph1(svg3, filteredData.data2);
+                drawGraph2Edges(svg4, filteredData.data2);
+            }
         });
 
         const highlightEdge = (edge) => {
@@ -439,22 +466,57 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const filterEdgesByValue = (threshold) => {
+            // Use selectedDataset instead of currentData
+            const dataToFilter = selectedDataset || datasets[0];  // Default to first dataset if none selected
+            
             // Filter links and related nodes
-            const filteredLinks = currentData.links.filter(link => link.value >= threshold);
+            const filteredLinks = dataToFilter.links.filter(link => link.value >= threshold);
             
             const usedNodes = new Set();
             filteredLinks.forEach(link => {
-                const sourceNode = typeof link.source === 'object' ? link.source : currentData.nodes[link.source];
-                const targetNode = typeof link.target === 'object' ? link.target : currentData.nodes[link.target];
+                const sourceNode = typeof link.source === 'object' ? link.source : dataToFilter.nodes[link.source];
+                const targetNode = typeof link.target === 'object' ? link.target : dataToFilter.nodes[link.target];
                 usedNodes.add(sourceNode.name);
                 usedNodes.add(targetNode.name);
             });
 
-            const filteredNodes = currentData.nodes.filter(node => usedNodes.has(node.name));
+            const filteredNodes = dataToFilter.nodes.filter(node => usedNodes.has(node.name));
 
             return {
                 nodes: filteredNodes,
                 links: filteredLinks
+            };
+        };
+
+        const filterCommonNodes = (data1, data2) => {
+            // Create sets of node names from both datasets
+            const names1 = new Set(data1.nodes.map(node => node.name));
+            const names2 = new Set(data2.nodes.map(node => node.name));
+
+            // Filter nodes that exist in both datasets
+            const filteredNodes1 = data1.nodes.filter(node => names2.has(node.name));
+            const filteredNodes2 = data2.nodes.filter(node => names1.has(node.name));
+
+            // Get the filtered node names
+            const filteredNames1 = new Set(filteredNodes1.map(node => node.name));
+            const filteredNames2 = new Set(filteredNodes2.map(node => node.name));
+
+            // Filter links that connect common nodes
+            const filteredLinks1 = data1.links.filter(link => {
+                const sourceNode = typeof link.source === 'object' ? link.source : data1.nodes[link.source];
+                const targetNode = typeof link.target === 'object' ? link.target : data1.nodes[link.target];
+                return filteredNames1.has(sourceNode.name) && filteredNames1.has(targetNode.name);
+            });
+
+            const filteredLinks2 = data2.links.filter(link => {
+                const sourceNode = typeof link.source === 'object' ? link.source : data2.nodes[link.source];
+                const targetNode = typeof link.target === 'object' ? link.target : data2.nodes[link.target];
+                return filteredNames2.has(sourceNode.name) && filteredNames2.has(targetNode.name);
+            });
+
+            return {
+                data1: { nodes: filteredNodes1, links: filteredLinks1 },
+                data2: { nodes: filteredNodes2, links: filteredLinks2 }
             };
         };
 
@@ -463,50 +525,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const nodeDisplay = document.getElementById('node-value-display');
         const edgeSlider = document.getElementById('edge-value-slider');
         const edgeDisplay = document.getElementById('edge-value-display');
-
-        // Update the episode-select event listener
-        document.getElementById("episode-select").addEventListener("change", function () {
-            const episodeIndex = this.value;
-            currentData = datasets[episodeIndex];
-
-            // Update scales
-            radiusScale.domain([0, d3.max(currentData.nodes, d => d.value)]);
-            linkWidthScale.domain([0, d3.max(currentData.links, d => d.value)]);
-
-            // Update node slider max value
-            const maxNodeValue = d3.max(currentData.nodes, d => d.value);
-            nodeSlider.max = maxNodeValue;
-            nodeSlider.value = 0;
-            nodeDisplay.textContent = "0";
-
-            // Redraw graphs 1 & 2
-            svg1.selectAll("*").remove();
-            svg2.selectAll("*").remove();
-            drawGraph1(svg1, currentData);
-            drawGraph2(svg2, currentData);
-        });
-
-        // Update the episode-select-3 event listener
-        document.getElementById("episode-select-3").addEventListener("change", function () {
-            const episodeIndex = this.value;
-            const selectedData = datasets[episodeIndex];
-
-            // Update scales
-            radiusScale.domain([0, d3.max(selectedData.nodes, d => d.value)]);
-            linkWidthScale.domain([0, d3.max(selectedData.links, d => d.value)]);
-
-            // Update edge slider max value
-            const maxEdgeValue = d3.max(selectedData.links, d => d.value);
-            edgeSlider.max = maxEdgeValue;
-            edgeSlider.value = 0;
-            edgeDisplay.textContent = "0";
-
-            // Clear and redraw graphs
-            svg3.selectAll("*").remove();
-            svg4.selectAll("*").remove();
-            drawGraph1(svg3, selectedData);
-            drawGraph2Edges(svg4, selectedData);
-        });
 
         // Add slider event listeners
         nodeSlider.addEventListener('input', function() {
@@ -531,6 +549,36 @@ document.addEventListener('DOMContentLoaded', function () {
             svg4.selectAll("*").remove();
             drawGraph1(svg3, filteredData);
             drawGraph2Edges(svg4, filteredData);
+        });
+
+        // Add checkbox event listener
+        document.getElementById('common-nodes-only').addEventListener('change', function() {
+            if (this.checked) {
+                // Get the filtered data
+                const filteredData = filterCommonNodes(currentData, selectedDataset || datasets[0]);
+                
+                // Redraw graphs with filtered data
+                svg1.selectAll("*").remove();
+                svg2.selectAll("*").remove();
+                svg3.selectAll("*").remove();
+                svg4.selectAll("*").remove();
+                
+                drawGraph1(svg1, filteredData.data1);
+                drawGraph2(svg2, filteredData.data1);
+                drawGraph1(svg3, filteredData.data2);
+                drawGraph2Edges(svg4, filteredData.data2);
+            } else {
+                // Reset to original data
+                svg1.selectAll("*").remove();
+                svg2.selectAll("*").remove();
+                svg3.selectAll("*").remove();
+                svg4.selectAll("*").remove();
+                
+                drawGraph1(svg1, currentData);
+                drawGraph2(svg2, currentData);
+                drawGraph1(svg3, selectedDataset || datasets[0]);
+                drawGraph2Edges(svg4, selectedDataset || datasets[0]);
+            }
         });
     }).catch(function (error) {
         console.error("Error loading the data:", error);
