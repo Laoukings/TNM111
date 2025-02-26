@@ -1,5 +1,5 @@
-const width = 425;
-const height = 400;
+const width = 604;
+const height = 304;
 let selectedNode = null;  // Add this line
 let selectedDataset = null;  // Track dataset for graphs 3 & 4
 
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const sortedNodes = data.nodes.sort((a, b) => b.value - a.value);
             
             // Define grid parameters
-            const nodesPerRow = 3;
+            const nodesPerRow = 4;
             const horizontalSpacing = 150;
             const verticalSpacing = 70;
             
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const sortedLinks = data.links.sort((a, b) => b.value - a.value);
             
             // Define grid parameters
-            const linksPerRow = 3;
+            const linksPerRow = 4;
             const horizontalSpacing = 150;
             const verticalSpacing = 100;  // Increased for edge visualization
             
