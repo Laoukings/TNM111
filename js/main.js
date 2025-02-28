@@ -530,25 +530,62 @@ document.addEventListener('DOMContentLoaded', function () {
         nodeSlider.addEventListener('input', function() {
             const value = parseInt(this.value);
             nodeDisplay.textContent = value;
-            const filteredData = filterNodesByValue(value);
             
-            // Redraw graphs 1 & 2
-            svg1.selectAll("*").remove();
-            svg2.selectAll("*").remove();
-            drawGraph1(svg1, filteredData);
-            drawGraph2(svg2, filteredData);
+            if (document.getElementById('common-nodes-only').checked) {
+                // First filter by value
+                const filteredByValue = filterNodesByValue(value);
+                // Then filter common nodes between the filtered data and the other graph
+                const filteredData = filterCommonNodes(filteredByValue, selectedDataset || datasets[0]);
+                
+                // Redraw all graphs with filtered data
+                svg1.selectAll("*").remove();
+                svg2.selectAll("*").remove();
+                svg3.selectAll("*").remove();
+                svg4.selectAll("*").remove();
+                
+                drawGraph1(svg1, filteredData.data1);
+                drawGraph2(svg2, filteredData.data1);
+                drawGraph1(svg3, filteredData.data2);
+                drawGraph2Edges(svg4, filteredData.data2);
+            } else {
+                // Original behavior when checkbox is unchecked
+                const filteredData = filterNodesByValue(value);
+                svg1.selectAll("*").remove();
+                svg2.selectAll("*").remove();
+                drawGraph1(svg1, filteredData);
+                drawGraph2(svg2, filteredData);
+            }
         });
+        
 
         edgeSlider.addEventListener('input', function() {
             const value = parseInt(this.value);
             edgeDisplay.textContent = value;
-            const filteredData = filterEdgesByValue(value);
             
-            // Redraw graphs 3 & 4
-            svg3.selectAll("*").remove();
-            svg4.selectAll("*").remove();
-            drawGraph1(svg3, filteredData);
-            drawGraph2Edges(svg4, filteredData);
+            if (document.getElementById('common-nodes-only').checked) {
+                // First filter by value
+                const filteredByValue = filterEdgesByValue(value);
+                // Then filter common nodes between the graphs
+                const filteredData = filterCommonNodes(currentData, filteredByValue);
+                
+                // Redraw all graphs with filtered data
+                svg1.selectAll("*").remove();
+                svg2.selectAll("*").remove();
+                svg3.selectAll("*").remove();
+                svg4.selectAll("*").remove();
+                
+                drawGraph1(svg1, filteredData.data1);
+                drawGraph2(svg2, filteredData.data1);
+                drawGraph1(svg3, filteredData.data2);
+                drawGraph2Edges(svg4, filteredData.data2);
+            } else {
+                // Original behavior when checkbox is unchecked
+                const filteredData = filterEdgesByValue(value);
+                svg3.selectAll("*").remove();
+                svg4.selectAll("*").remove();
+                drawGraph1(svg3, filteredData);
+                drawGraph2Edges(svg4, filteredData);
+            }
         });
 
         // Add checkbox event listener
