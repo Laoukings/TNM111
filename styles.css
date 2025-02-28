@@ -10,11 +10,13 @@ body {
 /* Container Layout */
 #container {
     display: flex;
-    gap: 50px;
+    gap: 20px;
     padding: 20px;
     justify-content: center;
+    align-items: start; 
 }
 
+/* Ensure both columns are identical */
 #left-column, #right-column {
     background: #ffffff;
     padding: 20px;
@@ -22,27 +24,54 @@ body {
     box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
     flex: 1;
     max-width: 600px;
+    min-width: 500px; 
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
+
+/* Controls column layout */
+#controls-column {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Checkbox Filter */
+.filter-controls {
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.1);
+}
+
 
 /* Dropdowns and Filters */
 label {
     font-weight: bold;
     color: #444;
+    display: block;
+    margin-bottom: 5px;
 }
 
-select, input[type="range"] {
+select{
     width: 100%;
     padding: 10px;
-    margin-bottom: 15px;
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: #f8f8f8;
     color: #333;
 }
 
+input[type="range"] {
+    width: 100%;
+}
+
 /* Graph Containers */
 #graph, #graph3 {
-    width: 100%;
+    margin-top: 20px;
+    width: 99,5%;
     height: 300px;
     background: #dfe6e9;
     border-radius: 1px;
@@ -73,19 +102,6 @@ select, input[type="range"] {
     border-radius: 6px;
     font-size: 14px;
     pointer-events: none;
-}
-
-/* Checkbox Filter */
-.filter-controls {
-    margin-top: 5px;
-    padding: 15px;
-    background: #f9f9f9;
-    border-radius: 1px;
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
-}
-
-.filter-controls div {
-    margin-bottom: 5px;
 }
 
 /* Zoom and Mouse Controls */
