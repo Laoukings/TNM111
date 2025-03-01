@@ -1,10 +1,10 @@
-const width = 604;
-const height = 304;
-let selectedNode = null;  // Add this line
-let selectedDataset = null;  // Track dataset for graphs 3 & 4
+const width = 574; // Set width of the SVG container
+const height = 304; // Set height of the SVG container
+let selectedNode = null;  // Track selected node for graphs 1 & 2
+let selectedDataset = null;  // Track selected dataset for graphs 3 & 4
 
 document.addEventListener('DOMContentLoaded', function () {
-    Promise.all([
+    Promise.all([ // Load all datasets
         d3.json("Datan/starwars-episode-1-interactions-allCharacters.json"),
         d3.json("Datan/starwars-episode-2-interactions-allCharacters.json"),
         d3.json("Datan/starwars-episode-3-interactions-allCharacters.json"),
@@ -35,13 +35,13 @@ document.addEventListener('DOMContentLoaded', function () {
             .append("svg")
             .attr("width", width);
 
-        // Define scales
+        // Scales for radius and link width
         const radiusScale = d3.scaleSqrt()
-            .domain([0, d3.max(currentData.nodes, d => d.value)])
+            .domain([0, d3.max(currentData.nodes, d => d.value)]) // Set domain to 0 -> max value in the current dataset
             .range([3, 15]);
 
         const linkWidthScale = d3.scaleLinear()
-            .domain([0, d3.max(currentData.links, d => d.value)])
+            .domain([0, d3.max(currentData.links, d => d.value)]) // Set domain to 0 -> max value in the current dataset
             .range([1, 5]);
 
         // Tooltip div
@@ -50,8 +50,10 @@ document.addEventListener('DOMContentLoaded', function () {
             .attr("class", "tooltip")
             .style("opacity", 0);
 
-        // Draw the original graph (graph1)
+        // Draw Graph 1, visualizing nodes and links
         const drawGraph1 = (svg, data) => {
+
+            // Append and draw links
             const links = svg.append("g")
                 .selectAll("line")
                 .data(data.links)
@@ -61,6 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .attr("stroke-width", d => linkWidthScale(d.value))
                 .attr("stroke-opacity", 0.6);
 
+            // Append and draw nodes
             const nodes = svg.append("g")
                 .selectAll("circle")
                 .data(data.nodes)
@@ -69,6 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 .attr("r", d => radiusScale(d.value))
                 .attr("fill", d => d.colour)
                 .call(d3.drag()
+                    // Enable dragging of nodes and update simulation
                     .on("start", dragstarted)
                     .on("drag", dragged)
                     .on("end", dragended))
@@ -88,24 +92,24 @@ document.addEventListener('DOMContentLoaded', function () {
                         .style("opacity", 0);
                 });
 
+            //Create a force simulation
             const simulation = d3.forceSimulation(data.nodes)
-                .force("link", d3.forceLink(data.links).id(d => d.index))
-                .force("charge", d3.forceManyBody().strength(-50))
-                .force("center", d3.forceCenter(width / 2, height / 2))
-                .force("collide", d3.forceCollide().radius(d => radiusScale(d.value) + 2))
-                .force("bounds", () => {
-                    for (let node of data.nodes) {
-                        // Get the radius of the current node
+                .force("link", d3.forceLink(data.links).id(d => d.index))  // Pulling-force for nodes using links
+                .force("charge", d3.forceManyBody().strength(-50)) // Repulsion between nodes
+                .force("center", d3.forceCenter(width / 2, height / 2)) // Force to center nodes in the middle of the graph
+                .force("collide", d3.forceCollide().radius(d => radiusScale(d.value) + 2)) //Collision force
+                .on("tick", () => {
+
+                    // Apply boundary constraints
+                    data.nodes.forEach(node => {
                         const r = radiusScale(node.value);
-                        
                         // Bound x coordinate
                         node.x = Math.max(r, Math.min(width - r, node.x));
-                        
                         // Bound y coordinate
                         node.y = Math.max(r, Math.min(height - r, node.y));
-                    }
-                })
-                .on("tick", () => {
+                    });
+
+                    // Update node and link positions on each tick
                     links
                         .attr("x1", d => d.source.x)
                         .attr("y1", d => d.source.y)
@@ -118,18 +122,21 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
             function dragstarted(event, d) {
-                if (!event.active) simulation.alphaTarget(0.3).restart();
+                if (!event.active) simulation.alphaTarget(0.3).restart(); // Restart simulation if not active
+                //fx and fy are used to fix the node in the position where it is dragged, ovveriding the simulation
                 d.fx = d.x;
                 d.fy = d.y;
             }
 
             function dragged(event, d) {
+                //fx and fy are used to fix the node in the position where it is dragged, ovveriding the simulation
                 d.fx = event.x;
                 d.fy = event.y;
             }
 
             function dragended(event, d) {
-                if (!event.active) simulation.alphaTarget(0);
+                if (!event.active) simulation.alphaTarget(0); // Stop simulation if not active
+                //Remove the fixed positions so that the simulation can take over again
                 d.fx = null;
                 d.fy = null;
             }
@@ -137,21 +144,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Draw the sorted nodes graph (graph2)
         const drawGraph2 = (svg, data) => {
-            // Sort nodes by value (or any other property)
+            // Sort nodes by value in descending order
             const sortedNodes = data.nodes.sort((a, b) => b.value - a.value);
-            
+
             // Define grid parameters
             const nodesPerRow = 4;
             const horizontalSpacing = 150;
             const verticalSpacing = 70;
-            
-            // Calculate total rows needed
+
+            // Calculate total rows needed and total height
             const totalRows = Math.ceil(sortedNodes.length / nodesPerRow);
             const totalHeight = (totalRows * verticalSpacing) + 20; // Add padding
-            
+
             // Set the SVG height to accommodate all nodes
             svg.attr("height", totalHeight);
-            
+
+            // Append circles for each node
             const nodes = svg.append("g")
                 .selectAll("circle")
                 .data(sortedNodes)
@@ -165,13 +173,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Toggle highlight when clicking the same node
                     if (selectedNode === d) {
                         selectedNode = null;
-                        resetHighlightGraphs12();
+                        resetHighlights([svg1, svg2]);
                     } else {
+                        // Update selected node and highlight the node
                         selectedNode = d;
                         highlightNode(d);
                     }
                 });
 
+            // Append labels for each node
             const labels = svg.append("g")
                 .selectAll("text")
                 .data(sortedNodes)
@@ -185,21 +195,21 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         const drawGraph2Edges = (svg, data) => {
-            // Sort links by value
+            // Sort links by value in descending order
             const sortedLinks = data.links.sort((a, b) => b.value - a.value);
-            
+
             // Define grid parameters
             const linksPerRow = 4;
             const horizontalSpacing = 150;
-            const verticalSpacing = 100;  // Increased for edge visualization
-            
-            // Calculate total rows needed
+            const verticalSpacing = 100;
+
+            // Calculate total rows and total height
             const totalRows = Math.ceil(sortedLinks.length / linksPerRow);
             const totalHeight = (totalRows * verticalSpacing) + 20; // Add padding
-            
+
             // Set the SVG height to accommodate all links
             svg.attr("height", totalHeight);
-            
+
             // Create group for each edge visualization
             const edgeGroups = svg.append("g")
                 .selectAll("g")
@@ -215,13 +225,13 @@ document.addEventListener('DOMContentLoaded', function () {
             // Add circles for source nodes
             edgeGroups.append("circle")
                 .attr("r", 5)
-                .attr("fill", d => d.source.colour || "#999")
+                .attr("fill", d => d.source.colour || "#999") // Set colour to source node colour or default to grey
                 .attr("cy", -15);
 
             // Add circles for target nodes
             edgeGroups.append("circle")
                 .attr("r", 5)
-                .attr("fill", d => d.target.colour || "#999")
+                .attr("fill", d => d.target.colour || "#999") // Set colour to source node colour or default to grey
                 .attr("cy", 15);
 
             // Add lines connecting the nodes
@@ -231,18 +241,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 .attr("stroke", "#999")
                 .attr("stroke-width", d => linkWidthScale(d.value))
                 .attr("stroke-opacity", 0.6)
-                .on("click", function(event, d) {
+                .on("click", function (event, d) {
                     // Toggle highlight when clicking the same edge
                     if (selectedNode === d) {
                         selectedNode = null;
-                        resetHighlightGraphs34();
+                        resetHighlights([svg3, svg4]);
                     } else {
+                        // Update selected node and highlight the edge
                         selectedNode = d;
                         highlightEdge(d);
                     }
                 });
 
-            // Add labels
+            // Add the names for source and target nodes
             edgeGroups.append("text")
                 .text(d => `${d.source.name} → ${d.target.name}`)
                 .attr("font-size", "10px")
@@ -258,201 +269,154 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         // Draw all graphs
-        drawGraph1(svg1, currentData);
-        drawGraph2(svg2, currentData);
-        drawGraph2Edges(svg4, currentData);
-        drawGraph1(svg3, datasets[0]); // Full interactions graph
+        drawGraph1(svg1, currentData);  // Graph 1 for nodes and links
+        drawGraph1(svg3, currentData); // Graph 3 for nodes and links
+        drawGraph2(svg2, currentData); // Graph 2 for sorted nodes
+        drawGraph2Edges(svg4, currentData); // Graph 4 for sorted links
 
-        // Highlight nodes and links in graph1
+        // Highlight nodes and links when clicked, function for Graph 1, used in Graph 2 
         const highlightNode = (node) => {
 
             // Highlight links connected to the clicked node
             svg1.selectAll("line")
+                // Check if the node is the source or target of the link, if true, change the color to orange else to grey, d is the data of the link
                 .attr("stroke", d => d.source === node || d.target === node ? "orange" : "#999")
                 .attr("stroke-width", d => d.source === node || d.target === node ? 3 : linkWidthScale(d.value));
 
-            // Highlight the first connected node
+            // Find connected nodes
             const connectedNodes = currentData.links
-                .filter(link => link.source === node || link.target === node)
-                .map(link => (link.source === node ? link.target : link.source));
+                .filter(link => link.source === node || link.target === node) // Filter links connected to the node
+                .map(link => (link.source === node ? link.target : link.source)); // Get the connected nodes, if the source is the node, get the target and vice versa
 
+            // Highlight the connected nodes in the graph
             svg1.selectAll("circle")
                 .attr("stroke", d => connectedNodes.includes(d) ? "orange" : null)
                 .attr("stroke-width", d => connectedNodes.includes(d) ? 3 : 0);
         };
 
-        // Reset all highlights
-        const resetHighlightGraphs12 = () => {
-            // Reset graph1 highlights
-            svg1.selectAll("line")
-                .attr("stroke", "#999")
-                .attr("stroke-width", d => linkWidthScale(d.value));
-
-            svg1.selectAll("circle")
-                .attr("stroke", null)
-                .attr("stroke-width", 0);
-
-            // Reset graph2 highlights
-            svg2.selectAll("line")
-                .attr("stroke", "#999")
-                .attr("stroke-width", d => linkWidthScale(d.value))
-                .attr("stroke-opacity", 0.6);
-
-            svg2.selectAll("circle")
-                .attr("stroke", null)
-                .attr("stroke-width", 0);
-        };
-
-        const resetHighlightGraphs34 = () => {
-            // Reset graph3 highlights
-            svg3.selectAll("line")
-                .attr("stroke", "#999")
-                .attr("stroke-width", d => linkWidthScale(d.value))
-                .attr("stroke-opacity", 0.6);
-
-            svg3.selectAll("circle")
-                .attr("stroke", null)
-                .attr("stroke-width", 0);
-
-            // Reset graph4 highlights
-            svg4.selectAll("line")
-                .attr("stroke", "#999")
-                .attr("stroke-width", d => linkWidthScale(d.value))
-                .attr("stroke-opacity", 0.6);
-
-            svg4.selectAll("circle")
-                .attr("stroke", null)
-                .attr("stroke-width", 0);
-        };
-
-        // Control Panel - Episode Selector for Graphs 1 & 2
-        document.getElementById("episode-select").addEventListener("change", function () {
-            const episodeIndex = this.value;
-            currentData = datasets[episodeIndex];
-
-            // Update scales
-            radiusScale.domain([0, d3.max(currentData.nodes, d => d.value)]);
-            linkWidthScale.domain([0, d3.max(currentData.links, d => d.value)]);
-
-            // Update node slider max value
-            const maxNodeValue = d3.max(currentData.nodes, d => d.value);
-            nodeSlider.max = maxNodeValue;
-            nodeSlider.value = 0;
-            nodeDisplay.textContent = "0";
-
-            // Redraw graphs 1 & 2
-            svg1.selectAll("*").remove();
-            svg2.selectAll("*").remove();
-            drawGraph1(svg1, currentData);
-            drawGraph2(svg2, currentData);
-
-            if (document.getElementById('common-nodes-only').checked) {
-                const filteredData = filterCommonNodes(currentData, selectedDataset || datasets[0]);
-                svg1.selectAll("*").remove();
-                svg2.selectAll("*").remove();
-                svg3.selectAll("*").remove();
-                svg4.selectAll("*").remove();
-                
-                drawGraph1(svg1, filteredData.data1);
-                drawGraph2(svg2, filteredData.data1);
-                drawGraph1(svg3, filteredData.data2);
-                drawGraph2Edges(svg4, filteredData.data2);
-            }
-        });
-
-        // Control Panel - Episode Selector for Graphs 3 & 4
-        document.getElementById("episode-select-3").addEventListener("change", function () {
-            const episodeIndex = this.value;
-            selectedDataset = datasets[episodeIndex];  // Store the selected dataset
-
-            // Update scales
-            radiusScale.domain([0, d3.max(selectedDataset.nodes, d => d.value)]);
-            linkWidthScale.domain([0, d3.max(selectedDataset.links, d => d.value)]);
-
-            // Update edge slider max value
-            const maxEdgeValue = d3.max(selectedDataset.links, d => d.value);
-            edgeSlider.max = maxEdgeValue;
-            edgeSlider.value = 0;
-            edgeDisplay.textContent = "0";
-
-            // Clear and redraw graphs
-            svg3.selectAll("*").remove();
-            svg4.selectAll("*").remove();
-            drawGraph1(svg3, selectedDataset);
-            drawGraph2Edges(svg4, selectedDataset);
-
-            if (document.getElementById('common-nodes-only').checked) {
-                const filteredData = filterCommonNodes(currentData, selectedDataset || datasets[0]);
-                svg1.selectAll("*").remove();
-                svg2.selectAll("*").remove();
-                svg3.selectAll("*").remove();
-                svg4.selectAll("*").remove();
-                
-                drawGraph1(svg1, filteredData.data1);
-                drawGraph2(svg2, filteredData.data1);
-                drawGraph1(svg3, filteredData.data2);
-                drawGraph2Edges(svg4, filteredData.data2);
-            }
-        });
-
+        // Highlight edges and nodes when clicked, function for Graph 3, used in Graph 4
         const highlightEdge = (edge) => {
-            // Highlight the selected edge group in graph4
+
+            // Highlight the selected edge in Graph 4
             svg4.selectAll("line")
                 .attr("stroke", d => d === edge ? "orange" : "#999")
                 .attr("stroke-width", d => d === edge ? 5 : linkWidthScale(d.value))
                 .attr("stroke-opacity", d => d === edge ? 1 : 0.6);
 
-            // Highlight the connected nodes (circles) in graph4
-            svg4.selectAll("circle")
-                .attr("stroke", d => {
-                    const isSourceOrTarget = 
-                        (edge.source === d || edge.target === d) ||
-                        (edge.source.name === d.name || edge.target.name === d.name);
-                    return isSourceOrTarget ? "orange" : null;
-                })
-                .attr("stroke-width", d => {
-                    const isSourceOrTarget = 
-                        (edge.source === d || edge.target === d) ||
-                        (edge.source.name === d.name || edge.target.name === d.name);
-                    return isSourceOrTarget ? 3 : 0;
-                });
-
-            // Highlight the corresponding edge in graph3
+            // Highlight the corresponding edge in Graph 3
             svg3.selectAll("line")
-                .attr("stroke", d => 
+                .attr("stroke", d =>
                     (d.source.name === edge.source.name && d.target.name === edge.target.name) ||
-                    (d.source.name === edge.target.name && d.target.name === edge.source.name)
-                        ? "orange" 
+                        (d.source.name === edge.target.name && d.target.name === edge.source.name)
+                        ? "orange"
                         : "#999")
-                .attr("stroke-width", d => 
+                .attr("stroke-width", d =>
                     (d.source.name === edge.source.name && d.target.name === edge.target.name) ||
-                    (d.source.name === edge.target.name && d.target.name === edge.source.name)
-                        ? 5 
+                        (d.source.name === edge.target.name && d.target.name === edge.source.name)
+                        ? 5
                         : linkWidthScale(d.value))
-                .attr("stroke-opacity", d => 
+                .attr("stroke-opacity", d =>
                     (d.source.name === edge.source.name && d.target.name === edge.target.name) ||
-                    (d.source.name === edge.target.name && d.target.name === edge.source.name)
-                        ? 1 
+                        (d.source.name === edge.target.name && d.target.name === edge.source.name)
+                        ? 1
                         : 0.6);
 
-            // Highlight the connected nodes in graph3
+            // Highlight the connected nodes in Graph 3
             svg3.selectAll("circle")
-                .attr("stroke", d => 
-                    d.name === edge.source.name || d.name === edge.target.name 
-                        ? "orange" 
+                .attr("stroke", d =>
+                    d.name === edge.source.name || d.name === edge.target.name
+                        ? "orange"
                         : null)
-                .attr("stroke-width", d => 
-                    d.name === edge.source.name || d.name === edge.target.name 
-                        ? 3 
+                .attr("stroke-width", d =>
+                    d.name === edge.source.name || d.name === edge.target.name
+                        ? 3
                         : 0);
         };
+
+        // Reset highlights function for all graphs
+        const resetHighlights = (graphs) => {
+            // Reset each specified graph
+            graphs.forEach(svg => {
+                // Reset links
+                svg.selectAll("line")
+                    .attr("stroke", "#999")
+                    .attr("stroke-width", d => linkWidthScale(d.value))
+                    .attr("stroke-opacity", 0.6);
+
+                // Reset nodes
+                svg.selectAll("circle")
+                    .attr("stroke", null)
+                    .attr("stroke-width", 0);
+            });
+        };
+
+        // Function to handle episode change
+        const handleEpisodeChange = (episodeIndex, isFirstGraph) => {
+
+            // First uncheck the common nodes checkbox
+            const commonNodesCheckbox = document.getElementById('common-nodes-only');
+            if (commonNodesCheckbox.checked) {
+                commonNodesCheckbox.checked = false;
+            }
+
+            // Update the appropriate dataset
+            if (isFirstGraph) {
+                currentData = datasets[episodeIndex];
+            } else {
+                selectedDataset = datasets[episodeIndex];
+            }
+
+            const dataToUpdate = isFirstGraph ? currentData : selectedDataset;
+
+            // Update scales based on selected data
+            radiusScale.domain([0, d3.max(dataToUpdate.nodes, d => d.value)]);
+            linkWidthScale.domain([0, d3.max(dataToUpdate.links, d => d.value)]);
+
+            // Update slider settings
+            if (isFirstGraph) {
+                // Update node slider
+                const maxNodeValue = d3.max(dataToUpdate.nodes, d => d.value);
+                nodeSlider.max = maxNodeValue;
+                nodeSlider.value = 0;
+                nodeDisplay.textContent = "0";
+            } else {
+                // Update edge slider
+                const maxEdgeValue = d3.max(dataToUpdate.links, d => d.value);
+                edgeSlider.max = maxEdgeValue;
+                edgeSlider.value = 0;
+                edgeDisplay.textContent = "0";
+            }
+
+            // Determine which SVGs to update
+            const svgsToUpdate = isFirstGraph ? [svg1, svg2] : [svg3, svg4];
+
+            // Clear the appropriate graphs
+            svgsToUpdate.forEach(svg => svg.selectAll("*").remove());
+
+            // Redraw the appropriate graphs
+            if (isFirstGraph) {
+                drawGraph1(svg1, dataToUpdate);
+                drawGraph2(svg2, dataToUpdate);
+            } else {
+                drawGraph1(svg3, dataToUpdate);
+                drawGraph2Edges(svg4, dataToUpdate);
+            }
+        };
+
+        document.getElementById("episode-select").addEventListener("change", function () {
+            handleEpisodeChange(this.value, true); // true = updating Graphs 1 & 2
+        });
+
+        document.getElementById("episode-select-3").addEventListener("change", function () {
+            handleEpisodeChange(this.value, false); // false = updating Graphs 3 & 4
+        });
 
         // Filter functions
         const filterNodesByValue = (threshold) => {
             // Filter nodes and related links
             const filteredNodes = currentData.nodes.filter(node => node.value >= threshold);
             const filteredNodeNames = new Set(filteredNodes.map(node => node.name));
-            
+
             const filteredLinks = currentData.links.filter(link => {
                 const sourceNode = typeof link.source === 'object' ? link.source : currentData.nodes[link.source];
                 const targetNode = typeof link.target === 'object' ? link.target : currentData.nodes[link.target];
@@ -468,10 +432,10 @@ document.addEventListener('DOMContentLoaded', function () {
         const filterEdgesByValue = (threshold) => {
             // Use selectedDataset instead of currentData
             const dataToFilter = selectedDataset || datasets[0];  // Default to first dataset if none selected
-            
+
             // Filter links and related nodes
             const filteredLinks = dataToFilter.links.filter(link => link.value >= threshold);
-            
+
             const usedNodes = new Set();
             filteredLinks.forEach(link => {
                 const sourceNode = typeof link.source === 'object' ? link.source : dataToFilter.nodes[link.source];
@@ -527,22 +491,22 @@ document.addEventListener('DOMContentLoaded', function () {
         const edgeDisplay = document.getElementById('edge-value-display');
 
         // Add slider event listeners
-        nodeSlider.addEventListener('input', function() {
+        nodeSlider.addEventListener('input', function () {
             const value = parseInt(this.value);
             nodeDisplay.textContent = value;
-            
+
             if (document.getElementById('common-nodes-only').checked) {
                 // First filter by value
                 const filteredByValue = filterNodesByValue(value);
                 // Then filter common nodes between the filtered data and the other graph
                 const filteredData = filterCommonNodes(filteredByValue, selectedDataset || datasets[0]);
-                
+
                 // Redraw all graphs with filtered data
                 svg1.selectAll("*").remove();
                 svg2.selectAll("*").remove();
                 svg3.selectAll("*").remove();
                 svg4.selectAll("*").remove();
-                
+
                 drawGraph1(svg1, filteredData.data1);
                 drawGraph2(svg2, filteredData.data1);
                 drawGraph1(svg3, filteredData.data2);
@@ -556,24 +520,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 drawGraph2(svg2, filteredData);
             }
         });
-        
 
-        edgeSlider.addEventListener('input', function() {
+        edgeSlider.addEventListener('input', function () {
             const value = parseInt(this.value);
             edgeDisplay.textContent = value;
-            
+
             if (document.getElementById('common-nodes-only').checked) {
                 // First filter by value
                 const filteredByValue = filterEdgesByValue(value);
                 // Then filter common nodes between the graphs
                 const filteredData = filterCommonNodes(currentData, filteredByValue);
-                
+
                 // Redraw all graphs with filtered data
                 svg1.selectAll("*").remove();
                 svg2.selectAll("*").remove();
                 svg3.selectAll("*").remove();
                 svg4.selectAll("*").remove();
-                
+
                 drawGraph1(svg1, filteredData.data1);
                 drawGraph2(svg2, filteredData.data1);
                 drawGraph1(svg3, filteredData.data2);
@@ -589,32 +552,89 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         // Add checkbox event listener
-        document.getElementById('common-nodes-only').addEventListener('change', function() {
+        document.getElementById('common-nodes-only').addEventListener('change', function () {
             if (this.checked) {
+
+                // Get current slider values
+                const nodeThreshold = parseInt(nodeSlider.value) || 0;
+                const edgeThreshold = parseInt(edgeSlider.value) || 0;
+
+                // Variables for value filtering, if needed
+                let firstData = currentData;
+                let secondData = selectedDataset || datasets[0];
+
+                // Apply node value filtering if threshold > 0
+                if (nodeThreshold > 0) {
+                    firstData = filterNodesByValue(nodeThreshold);
+                }
+
+                // Apply edge value filtering if threshold > 0
+                if (edgeThreshold > 0) {
+                    secondData = filterEdgesByValue(edgeThreshold);
+                }
+
                 // Get the filtered data
-                const filteredData = filterCommonNodes(currentData, selectedDataset || datasets[0]);
-                
+                const filteredData = filterCommonNodes(firstData, secondData || datasets[0]);
+
+                radiusScale.domain([0, Math.max(
+                    d3.max(filteredData.data1.nodes, d => d.value) || 0,
+                    d3.max(filteredData.data2.nodes, d => d.value) || 0
+                )]);
+
+                linkWidthScale.domain([0, Math.max(
+                    d3.max(filteredData.data1.links, d => d.value) || 0,
+                    d3.max(filteredData.data2.links, d => d.value) || 0
+                )]);
+
                 // Redraw graphs with filtered data
                 svg1.selectAll("*").remove();
                 svg2.selectAll("*").remove();
                 svg3.selectAll("*").remove();
                 svg4.selectAll("*").remove();
-                
+
                 drawGraph1(svg1, filteredData.data1);
                 drawGraph2(svg2, filteredData.data1);
                 drawGraph1(svg3, filteredData.data2);
                 drawGraph2Edges(svg4, filteredData.data2);
             } else {
+
+                // Get current slider values
+                const nodeThreshold = parseInt(nodeSlider.value) || 0;
+                const edgeThreshold = parseInt(edgeSlider.value) || 0;
+
+                // Create variables for potentially filtered data
+                let firstData = currentData;
+                let secondData = selectedDataset || datasets[0];
+
+                // Apply filters based on sliders
+                if (nodeThreshold > 0) {
+                    firstData = filterNodesByValue(nodeThreshold);
+                }
+
+                if (edgeThreshold > 0) {
+                    secondData = filterEdgesByValue(edgeThreshold);
+                }
+
+                radiusScale.domain([0, Math.max(
+                    d3.max(firstData.nodes, d => d.value),
+                    d3.max(secondData.nodes, d => d.value) || 0
+                )]);
+
+                linkWidthScale.domain([0, Math.max(
+                    d3.max(firstData.links, d => d.value),
+                    d3.max(secondData.links, d => d.value) || 0
+                )]);
+
                 // Reset to original data
                 svg1.selectAll("*").remove();
                 svg2.selectAll("*").remove();
                 svg3.selectAll("*").remove();
                 svg4.selectAll("*").remove();
-                
-                drawGraph1(svg1, currentData);
-                drawGraph2(svg2, currentData);
-                drawGraph1(svg3, selectedDataset || datasets[0]);
-                drawGraph2Edges(svg4, selectedDataset || datasets[0]);
+
+                drawGraph1(svg1, firstData);
+                drawGraph2(svg2, firstData);
+                drawGraph1(svg3, secondData);
+                drawGraph2Edges(svg4, secondData);
             }
         });
     }).catch(function (error) {
