@@ -16,7 +16,7 @@ body {
     align-items: start; 
 }
 
-/* Ensure both columns are identical */
+/* Column Layout */
 #left-column, #right-column {
     background: #ffffff;
     padding: 20px;
@@ -47,7 +47,7 @@ body {
 }
 
 
-/* Dropdowns and Filters */
+/* episode selection and filter slider styling */
 label {
     font-weight: bold;
     color: #444;
@@ -68,7 +68,7 @@ input[type="range"] {
     width: 100%;
 }
 
-/* Graph Containers */
+/* Graph Styling */
 #graph, #graph3 {
     margin-top: 20px;
     width: 99,5%;
@@ -83,6 +83,7 @@ input[type="range"] {
     border: 2px solid #636e72;
 }
 
+/* Graph container styling */
 #graph2-container, #graph4-container {
     margin-top: 20px;
     border: 2px solid #636e72;
@@ -104,31 +105,8 @@ input[type="range"] {
     pointer-events: none;
 }
 
-/* Zoom and Mouse Controls */
-.zoom {
-    cursor: move;
-    fill: none;
-    pointer-events: all;
-}
-.no-mouse {
-    pointer-events: none;
-}
-
-/* Map Styling */
-#mapid {
-    height: 300px;
-    width: auto;
-    position: relative;
-    margin-top: -30px;
-    margin-left: 40px;
-    margin-right: 20px;
-    margin-bottom: 10px;
-    border-radius: 10px;
-    border: 3px solid #636e72;
-}
-
-/* Tooltip and Color Info Styling */
-#tooltip, #color-info {
+/* Tooltip Styling */
+#tooltip {
     height: 270px;
     background-color: white;
     border-radius: 10px;
@@ -147,18 +125,9 @@ input[type="range"] {
     color: #333;
 }
 
-#tooltip, #color-info {
+#tooltip{
     margin-top: 20px;
     position: relative;
     width: auto;
     background-color: #fafafa;
-}
-
-#color-info {
-    font-family: sans-serif;
-    font-size: 14px;
-    line-height: 30px;
-    color: #444;
-    padding: 10px;
-    border: 1px solid #ccc;
 }

@@ -552,19 +552,24 @@ document.addEventListener('DOMContentLoaded', function () {
             edgeDisplay.textContent = value;
 
             if (document.getElementById('common-nodes-only').checked) {
-                // First filter by value
-                const filteredEdgesByValue = filterEdgesByValue(value);
 
-                // Get current node threshold and apply it to second dataset
+                // Get current node threshold value
                 const nodeThreshold = parseInt(nodeSlider.value) || 0;
-                let secondData = selectedDataset || datasets[0];
 
+                // First dataset - for Graphs 1 & 2
+                let firstData = currentData;
                 if (nodeThreshold > 0) {
-                    secondData = filterNodesByValue(nodeThreshold);
+                    firstData = filterNodesByValue(nodeThreshold);
                 }
 
-                // Then filter common nodes between the graphs
-                const filteredData = filterCommonNodes(filteredEdgesByValue, secondData);
+                // Second dataset - for Graphs 3 & 4
+                let secondData = selectedDataset || datasets[0];
+                if (value > 0) {
+                    secondData = filterEdgesByValue(value);
+                }
+
+                // Filter common nodes between the two datasets
+                const filteredData = filterCommonNodes(firstData, secondData);
 
                 // Update scales based on filtered data
                 radiusScale.domain([0, Math.max(
