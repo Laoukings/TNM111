@@ -1,7 +1,7 @@
 const width = 574; // Set width of the SVG container
 const height = 304; // Set height of the SVG container
-let selectedNode = null;  // Track selected node for graphs 1 & 2
-let selectedDataset = null;  // Track selected dataset for graphs 3 & 4
+let selectedNode = null;  // Track selected node for Graphs 1 & 2
+let selectedDataset = null;  // Track selected dataset for Graphs 3 & 4
 
 document.addEventListener('DOMContentLoaded', function () {
     Promise.all([ // Load all datasets
@@ -411,12 +411,13 @@ document.addEventListener('DOMContentLoaded', function () {
             handleEpisodeChange(this.value, false); // false = updating Graphs 3 & 4
         });
 
-        // Filter functions
+        // Filter nodes based on value thresholds
         const filterNodesByValue = (threshold) => {
             // Filter nodes and related links
             const filteredNodes = currentData.nodes.filter(node => node.value >= threshold);
             const filteredNodeNames = new Set(filteredNodes.map(node => node.name));
 
+            // Filter links that connect the filtered nodes and show only those
             const filteredLinks = currentData.links.filter(link => {
                 const sourceNode = typeof link.source === 'object' ? link.source : currentData.nodes[link.source];
                 const targetNode = typeof link.target === 'object' ? link.target : currentData.nodes[link.target];
@@ -429,13 +430,15 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         };
 
+        // Filter edges based on value thresholds
         const filterEdgesByValue = (threshold) => {
-            // Use selectedDataset instead of currentData
-            const dataToFilter = selectedDataset || datasets[0];  // Default to first dataset if none selected
+            // Determine which dataset to filter
+            const dataToFilter = selectedDataset || datasets[0];
 
-            // Filter links and related nodes
+            // Filter links based on the threshold
             const filteredLinks = dataToFilter.links.filter(link => link.value >= threshold);
 
+            // Create a set of node names that are connected by the filtered links
             const usedNodes = new Set();
             filteredLinks.forEach(link => {
                 const sourceNode = typeof link.source === 'object' ? link.source : dataToFilter.nodes[link.source];
@@ -444,6 +447,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 usedNodes.add(targetNode.name);
             });
 
+            // Filter nodes that are connected by the filtered links
             const filteredNodes = dataToFilter.nodes.filter(node => usedNodes.has(node.name));
 
             return {
@@ -452,6 +456,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         };
 
+        // Filter common nodes between two datasets
         const filterCommonNodes = (data1, data2) => {
             // Create sets of node names from both datasets
             const names1 = new Set(data1.nodes.map(node => node.name));
@@ -497,9 +502,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (document.getElementById('common-nodes-only').checked) {
                 // First filter by value
-                const filteredByValue = filterNodesByValue(value);
+                const filteredByNodeValue = filterNodesByValue(value);
+
+                // Get current edge threshold and apply it to second dataset
+                const edgeThreshold = parseInt(edgeSlider.value) || 0;
+                let secondData = selectedDataset || datasets[0];
+
+                if (edgeThreshold > 0) {
+                    secondData = filterEdgesByValue(edgeThreshold);
+                }
+
                 // Then filter common nodes between the filtered data and the other graph
-                const filteredData = filterCommonNodes(filteredByValue, selectedDataset || datasets[0]);
+                const filteredData = filterCommonNodes(filteredByNodeValue, secondData);
+
+                // Update scales based on filtered data
+                radiusScale.domain([0, Math.max(
+                    d3.max(filteredData.data1.nodes, d => d.value) || 0,
+                    d3.max(filteredData.data2.nodes, d => d.value) || 0
+                )]);
+
+                linkWidthScale.domain([0, Math.max(
+                    d3.max(filteredData.data1.links, d => d.value) || 0,
+                    d3.max(filteredData.data2.links, d => d.value) || 0
+                )]);
+
 
                 // Redraw all graphs with filtered data
                 svg1.selectAll("*").remove();
@@ -527,9 +553,29 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (document.getElementById('common-nodes-only').checked) {
                 // First filter by value
-                const filteredByValue = filterEdgesByValue(value);
+                const filteredEdgesByValue = filterEdgesByValue(value);
+
+                // Get current node threshold and apply it to second dataset
+                const nodeThreshold = parseInt(nodeSlider.value) || 0;
+                let secondData = selectedDataset || datasets[0];
+
+                if (nodeThreshold > 0) {
+                    secondData = filterNodesByValue(nodeThreshold);
+                }
+
                 // Then filter common nodes between the graphs
-                const filteredData = filterCommonNodes(currentData, filteredByValue);
+                const filteredData = filterCommonNodes(filteredEdgesByValue, secondData);
+
+                // Update scales based on filtered data
+                radiusScale.domain([0, Math.max(
+                    d3.max(filteredData.data1.nodes, d => d.value) || 0,
+                    d3.max(filteredData.data2.nodes, d => d.value) || 0
+                )]);
+
+                linkWidthScale.domain([0, Math.max(
+                    d3.max(filteredData.data1.links, d => d.value) || 0,
+                    d3.max(filteredData.data2.links, d => d.value) || 0
+                )]);
 
                 // Redraw all graphs with filtered data
                 svg1.selectAll("*").remove();
@@ -576,6 +622,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 // Get the filtered data
                 const filteredData = filterCommonNodes(firstData, secondData || datasets[0]);
 
+                // Update scales based on filtered data
                 radiusScale.domain([0, Math.max(
                     d3.max(filteredData.data1.nodes, d => d.value) || 0,
                     d3.max(filteredData.data2.nodes, d => d.value) || 0
@@ -615,6 +662,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     secondData = filterEdgesByValue(edgeThreshold);
                 }
 
+                // Update scales based on filtered data
                 radiusScale.domain([0, Math.max(
                     d3.max(firstData.nodes, d => d.value),
                     d3.max(secondData.nodes, d => d.value) || 0
