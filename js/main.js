@@ -253,19 +253,41 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
 
-            // Add the names for source and target nodes
+            // Add the names for source nodes
             edgeGroups.append("text")
-                .text(d => `${d.source.name} → ${d.target.name}`)
-                .attr("font-size", "10px")
-                .attr("y", 35)
-                .attr("text-anchor", "middle");
-
-            // Add value labels
-            edgeGroups.append("text")
-                .text(d => `Value: ${d.value}`)
+            .text(d => {
+                // Truncate long names
+                const maxLength = 12;
+                return d.source.name.length > maxLength ? 
+                       d.source.name.substring(0, maxLength) + "..." : 
+                       d.source.name;
+            })
                 .attr("font-size", "10px")
                 .attr("y", -25)
                 .attr("text-anchor", "middle");
+
+            
+            // Add the names for target nodes
+            edgeGroups.append("text")
+            .text(d => {
+                // Truncate long names
+                const maxLength = 12;
+                return d.target.name.length > maxLength ? 
+                       d.target.name.substring(0, maxLength) + "..." : 
+                       d.target.name;
+            })
+            .attr("font-size", "10px")
+            .attr("y", 35)
+            .attr("text-anchor", "middle");
+
+            // Add value labels
+            edgeGroups.append("text")
+                .text(d => `${d.value}`)
+                .attr("font-size", "10px")
+                .attr("y", 0)  
+                .attr("x", 5) 
+                .attr("dominant-baseline", "middle") // Vertical alignment
+                .attr("text-anchor", "start"); // Left-align the text
         };
 
         // Draw all graphs
