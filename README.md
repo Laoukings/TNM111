@@ -69,9 +69,7 @@ Each interaction is represented with:
 
 ## Setup
 
-Simply open the 
-
-- **index.html** file in a modern web browser. No server is required as the application uses client-side rendering.
+Simply open the cmd, cd to the project, then start a localhost with `python -m http.server`, which creates a [localhost:8000](http://localhost:8000/)
 
 ## Authors
 
