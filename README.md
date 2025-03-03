@@ -71,9 +71,7 @@ Each interaction is represented with:
 
 Simply open the 
 
-index.html
-
- file in a modern web browser. No server is required as the application uses client-side rendering.
+-**index.html** file in a modern web browser. No server is required as the application uses client-side rendering.
 
 ## Authors
 
@@ -82,21 +80,9 @@ index.html
 
 ## Files and Structure
 
-- 
-
-index.html
-
-: Main HTML file
-- 
-
-styles.css
-
-: CSS styling
-- 
-
-main.js
-
-: Main JavaScript code containing all visualization logic
+- index.html: Main HTML file
+- styles.css: CSS styling
+- main.js: Main JavaScript code containing all visualization logic
 - `Datan/`: Directory containing JSON data files for each Star Wars episode
 
 ## License
