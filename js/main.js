@@ -187,7 +187,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 .data(sortedNodes)
                 .enter()
                 .append("text")
-                .text(d => d.name)
+                .text(d => {
+                    // Truncate long names
+                    const maxLength = 12;
+                    return d.name.length > maxLength ? 
+                           d.name.substring(0, maxLength) + "..." : 
+                           d.name;
+                })
                 .attr("font-size", "10px")
                 .attr("x", (d, i) => 50 + (i % nodesPerRow) * horizontalSpacing)
                 .attr("y", (d, i) => 80 + Math.floor(i / nodesPerRow) * verticalSpacing)
