@@ -80,10 +80,10 @@ Simply open the
 
 ## Files and Structure
 
-- index.html: Main HTML file
-- styles.css: CSS styling
-- main.js: Main JavaScript code containing all visualization logic
-- `Datan/`: Directory containing JSON data files for each Star Wars episode
+- **index.html**: Main HTML file
+- **styles.css**: CSS styling
+- **main.js**: Main JavaScript code containing all visualization logic
+- **`Datan/`**: Directory containing JSON data files for each Star Wars episode
 
 ## License
 
