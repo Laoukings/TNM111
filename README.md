@@ -71,7 +71,7 @@ Each interaction is represented with:
 
 Simply open the 
 
--**index.html** file in a modern web browser. No server is required as the application uses client-side rendering.
+- **index.html** file in a modern web browser. No server is required as the application uses client-side rendering.
 
 ## Authors
 
