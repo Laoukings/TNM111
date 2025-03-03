@@ -1,5 +1,5 @@
-const width = 574; // Set width of the SVG container
-const height = 304; // Set height of the SVG container
+const width = Math.min(window.innerWidth * 0.292); // Set width of the SVG container
+const height = Math.min(window.innerHeight * 0.295);; // Set height of the SVG container
 let selectedNode = null;  // Track selected node for Graphs 1 & 2
 let selectedDataset = null;  // Track selected dataset for Graphs 3 & 4
 
